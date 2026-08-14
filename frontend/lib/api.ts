@@ -28,3 +28,18 @@ export async function login(email: string, password: string) {
   }
   return response.json();
 }
+
+export async function uploadFile<T>(path: string, token: string, formData: FormData): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(body || response.statusText);
+  }
+  return response.json();
+}

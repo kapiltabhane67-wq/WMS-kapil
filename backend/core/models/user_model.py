@@ -30,4 +30,3 @@ class UserRecord:
     role: str
     seller_id: int | None
     active: int
-

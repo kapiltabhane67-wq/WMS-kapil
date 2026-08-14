@@ -186,7 +186,7 @@ export default function Home() {
           canAdjust={["ORG_ADMIN", "WAREHOUSE_MANAGER"].includes(role)}
         />
       )}
-      {view === "documents" && <DocumentsView documents={data.documents} />}
+      {view === "documents" && <DocumentsView documents={data.documents} token={token} onUploaded={loadData} />}
       {view === "audit" && <LedgerView movements={data.movements} />}
     </AppShell>
   );

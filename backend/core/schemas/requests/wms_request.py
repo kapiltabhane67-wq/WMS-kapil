@@ -1,9 +1,11 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from core.models.user_model import UserRole
 
-Role = Literal["ORG_ADMIN", "WAREHOUSE_MANAGER", "RECEIVER", "PICKER_PACKER", "SELLER_VIEWER"]
+
+Role = UserRole
 Code24 = Annotated[str, Field(min_length=2, max_length=24, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")]
 Code40 = Annotated[str, Field(min_length=2, max_length=40, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")]
 SkuCode = Annotated[str, Field(min_length=2, max_length=80, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")]

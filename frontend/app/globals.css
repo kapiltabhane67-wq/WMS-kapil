@@ -37,6 +37,11 @@ select {
   font: inherit;
 }
 
+input[type="file"] {
+  padding: 8px 10px;
+  min-height: 42px;
+}
+
 button {
   border: 1px solid var(--line);
   background: var(--panel);
@@ -101,6 +106,33 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.upload-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.upload-grid label {
+  display: grid;
+  gap: 7px;
+}
+
+.upload-grid span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 th,

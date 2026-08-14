@@ -83,6 +83,10 @@ export type DocumentRow = {
   reference_id: number;
   file_name: string;
   status: string;
+  original_file_name?: string | null;
+  content_type?: string | null;
+  file_size?: number | null;
+  sha256?: string | null;
 };
 
 export type MovementRow = {

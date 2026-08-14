@@ -209,6 +209,12 @@ CREATE TABLE IF NOT EXISTS documents (
     reference_id INTEGER NOT NULL,
     file_name TEXT NOT NULL,
     status TEXT NOT NULL,
+    storage_path TEXT,
+    original_file_name TEXT,
+    content_type TEXT,
+    file_size INTEGER,
+    sha256 TEXT,
+    uploaded_by INTEGER REFERENCES users(id),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -247,3 +253,15 @@ def init_db():
         user_columns = [row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()]
         if "password_hash" not in user_columns:
             conn.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
+        document_columns = [row["name"] for row in conn.execute("PRAGMA table_info(documents)").fetchall()]
+        document_migrations = {
+            "storage_path": "ALTER TABLE documents ADD COLUMN storage_path TEXT",
+            "original_file_name": "ALTER TABLE documents ADD COLUMN original_file_name TEXT",
+            "content_type": "ALTER TABLE documents ADD COLUMN content_type TEXT",
+            "file_size": "ALTER TABLE documents ADD COLUMN file_size INTEGER",
+            "sha256": "ALTER TABLE documents ADD COLUMN sha256 TEXT",
+            "uploaded_by": "ALTER TABLE documents ADD COLUMN uploaded_by INTEGER REFERENCES users(id)",
+        }
+        for column, statement in document_migrations.items():
+            if column not in document_columns:
+                conn.execute(statement)
