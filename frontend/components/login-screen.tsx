@@ -56,15 +56,6 @@ export function LoginScreen({
           <LockKeyhole size={16} />
           {busy ? "Signing in" : "Sign in"}
         </button>
-        <div className="credential-card" aria-label="Demo role credentials">
-          <p>Demo role logins</p>
-          <span>Admin: admin@whitfieldwms.com / ChangeMe123!</span>
-          <span>Manager: manager@whitfieldwms.com / Manager123!</span>
-          <span>Receiver: receiver@whitfieldwms.com / Receiver123!</span>
-          <span>Picker: picker@whitfieldwms.com / Picker123!</span>
-          <span>Seller: seller@client.example.com / Seller123!</span>
-        </div>
-        <p className="login-hint">Old .local emails are auto-converted, for example manager@whitfield.local still works.</p>
         {error && <div className="notice error">{error}</div>}
       </form>
     </main>
