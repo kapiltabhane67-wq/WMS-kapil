@@ -14,13 +14,14 @@ def main():
     sys.path.insert(0, str(BACKEND_DIR))
     os.environ["DATABASE_PATH"] = str(DATABASE_PATH)
     from core.database.connection import init_db
-    from core.database.seed import seed_if_empty
+    from core.database.seed import seed_demo_accounts, seed_if_empty
 
     init_db()
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     try:
         seed_if_empty(conn)
+        seed_demo_accounts(conn)
         conn.commit()
         counts = {}
         for table in ["sellers", "warehouses", "bins", "products", "users", "sales_orders", "inventory_balances"]:

@@ -526,6 +526,28 @@ th {
   margin: 0;
 }
 
+.credential-card {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(21, 117, 103, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(21, 117, 103, 0.08);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.credential-card p {
+  margin: 0 0 2px;
+  font-weight: 800;
+}
+
+.credential-card span {
+  color: var(--muted);
+  word-break: break-word;
+}
+
 @keyframes riseIn {
   from {
     opacity: 0;

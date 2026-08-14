@@ -23,9 +23,25 @@ def validate_password_strength(value: str) -> str:
     return value
 
 
+def normalize_legacy_email(value):
+    if not isinstance(value, str):
+        return value
+    clean_value = value.strip().lower()
+    if clean_value.endswith("@whitfield.local"):
+        return clean_value.replace("@whitfield.local", "@whitfieldwms.com")
+    if clean_value.endswith("@client.local"):
+        return clean_value.replace("@client.local", "@client.example.com")
+    return clean_value
+
+
 class LoginIn(StrictRequest):
     email: EmailStr
     password: str = Field(min_length=1, max_length=120)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_old_demo_email(cls, value):
+        return normalize_legacy_email(value)
 
 
 class ReceiptItemIn(StrictRequest):
@@ -125,6 +141,11 @@ class UserCreateIn(StrictRequest):
     @classmethod
     def empty_seller_to_none(cls, value):
         return None if value == "" else value
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_old_demo_email(cls, value):
+        return normalize_legacy_email(value)
 
     @field_validator("password")
     @classmethod

@@ -33,6 +33,13 @@ const emptyData: AppData = {
   reference: null,
 };
 
+function normalizeLoginEmail(email: string) {
+  const cleanEmail = email.trim().toLowerCase();
+  if (cleanEmail.endsWith("@whitfield.local")) return cleanEmail.replace("@whitfield.local", "@whitfieldwms.com");
+  if (cleanEmail.endsWith("@client.local")) return cleanEmail.replace("@client.local", "@client.example.com");
+  return cleanEmail;
+}
+
 export default function Home() {
   const [token, setToken] = useState("");
   const [view, setView] = useState<View>("dashboard");
@@ -125,15 +132,16 @@ export default function Home() {
 
   async function handleLogin(email: string, password: string) {
     setError("");
+    const loginEmail = normalizeLoginEmail(email);
     try {
-      const session = await login(email, password);
+      const session = await login(loginEmail, password);
       setToken(session.access_token);
       window.localStorage.setItem("wms_token", session.access_token);
       setData((current) => ({ ...current, me: session.user }));
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Login failed";
-      setError(message.includes("whitfield.local")
-        ? "Use admin@whitfieldwms.com. Old .local demo emails are no longer accepted after real email validation."
+      setError(message.includes("Invalid email or password")
+        ? "Invalid email or password. If this is a role user, confirm the admin created that user and password."
         : message);
     }
   }
