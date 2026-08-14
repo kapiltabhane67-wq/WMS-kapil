@@ -125,10 +125,17 @@ export default function Home() {
 
   async function handleLogin(email: string, password: string) {
     setError("");
-    const session = await login(email, password);
-    setToken(session.access_token);
-    window.localStorage.setItem("wms_token", session.access_token);
-    setData((current) => ({ ...current, me: session.user }));
+    try {
+      const session = await login(email, password);
+      setToken(session.access_token);
+      window.localStorage.setItem("wms_token", session.access_token);
+      setData((current) => ({ ...current, me: session.user }));
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Login failed";
+      setError(message.includes("whitfield.local")
+        ? "Use admin@whitfieldwms.com. Old .local demo emails are no longer accepted after real email validation."
+        : message);
+    }
   }
 
   function logout() {

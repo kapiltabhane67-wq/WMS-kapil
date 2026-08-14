@@ -56,6 +56,7 @@ export function LoginScreen({
           <LockKeyhole size={16} />
           {busy ? "Signing in" : "Sign in"}
         </button>
+        <p className="helper-text">Admin login: admin@whitfieldwms.com / ChangeMe123!</p>
         {error && <div className="notice error">{error}</div>}
       </form>
     </main>
