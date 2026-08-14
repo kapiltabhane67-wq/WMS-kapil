@@ -1,0 +1,24 @@
+services:
+  backend:
+    image: python:3.13-slim
+    working_dir: /app/backend
+    command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8016"
+    ports:
+      - "8016:8016"
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_PATH: /app/backend/data/wms_client_ready.sqlite3
+
+  frontend:
+    image: node:22-slim
+    working_dir: /app/frontend
+    command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0 --port 3001"
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+    environment:
+      NEXT_PUBLIC_API_BASE: http://127.0.0.1:8016
+    depends_on:
+      - backend
