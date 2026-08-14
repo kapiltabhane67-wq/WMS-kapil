@@ -1,6 +1,7 @@
 "use client";
 
 import { RefreshCcw } from "lucide-react";
+import { FormEvent, useState } from "react";
 
 import { allNavItems } from "../lib/constants";
 import type { User, View } from "../lib/types";
@@ -13,6 +14,7 @@ export function AppShell({
   children,
   refresh,
   logout,
+  changePassword,
 }: {
   view: View;
   setView: (view: View) => void;
@@ -20,8 +22,15 @@ export function AppShell({
   role: string;
   children: React.ReactNode;
   refresh: () => void;
-  logout: () => void;
+  logout: () => Promise<void> | void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }) {
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [busy, setBusy] = useState(false);
   const nav = allNavItems.filter((item) => {
     if (item[0] === "setup") return role === "ORG_ADMIN";
     if (item[0] === "manager") return ["ORG_ADMIN", "WAREHOUSE_MANAGER"].includes(role);
@@ -32,6 +41,25 @@ export function AppShell({
     return true;
   });
 
+  async function submitPasswordChange(event: FormEvent) {
+    event.preventDefault();
+    setPasswordMessage("");
+    setPasswordError("");
+    setBusy(true);
+    try {
+      const changed = await changePassword(currentPassword, newPassword);
+      if (changed) {
+        setPasswordMessage("Password changed. Please sign in again.");
+        setCurrentPassword("");
+        setNewPassword("");
+      } else {
+        setPasswordError("Password change failed.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="shell">
       <aside className="sidebar">
@@ -40,6 +68,31 @@ export function AppShell({
           <span>Signed in</span>
           <strong>{me?.full_name ?? "Whitfield user"}</strong>
           <small>{me?.email}</small>
+          <button type="button" onClick={() => setShowPasswordForm((current) => !current)}>
+            Change password
+          </button>
+          {showPasswordForm && (
+            <form className="password-card" onSubmit={submitPasswordChange}>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                placeholder="Current password"
+                required
+              />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="New password"
+                minLength={8}
+                required
+              />
+              <button type="submit" disabled={busy}>{busy ? "Updating" : "Update password"}</button>
+              {passwordMessage && <small>{passwordMessage}</small>}
+              {passwordError && <small className="danger-text">{passwordError}</small>}
+            </form>
+          )}
           <button type="button" onClick={logout}>Logout</button>
         </div>
         <div className="nav">

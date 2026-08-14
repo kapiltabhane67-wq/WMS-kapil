@@ -1,6 +1,7 @@
 from core.schemas.requests.wms_request import (
     BinCreateIn,
     BinUpdateIn,
+    ChangePasswordIn,
     InventoryAdjustmentIn,
     LoginIn,
     OrderImportIn,
@@ -28,6 +29,7 @@ from core.schemas.responses.wms_response import LoginOut, UserContext
 __all__ = [
     "BinCreateIn",
     "BinUpdateIn",
+    "ChangePasswordIn",
     "InventoryAdjustmentIn",
     "LoginIn",
     "LoginOut",

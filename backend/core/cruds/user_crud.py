@@ -7,7 +7,18 @@ def get_active_user_by_email(conn: Connection, email: str) -> Row | None:
     return fetch_one(
         conn,
         """
-        SELECT id, email, full_name, role, seller_id, password_hash, active
+        SELECT
+            id,
+            email,
+            full_name,
+            role,
+            seller_id,
+            password_hash,
+            active,
+            failed_login_count,
+            locked_until,
+            last_login_at,
+            password_changed_at
         FROM users
         WHERE email = ? AND active = 1
         """,
@@ -18,7 +29,22 @@ def get_active_user_by_email(conn: Connection, email: str) -> Row | None:
 def get_user_by_id(conn: Connection, user_id: int) -> Row | None:
     return fetch_one(
         conn,
-        "SELECT id, email, full_name, role, seller_id, password_hash, active FROM users WHERE id = ?",
+        """
+        SELECT
+            id,
+            email,
+            full_name,
+            role,
+            seller_id,
+            password_hash,
+            active,
+            failed_login_count,
+            locked_until,
+            last_login_at,
+            password_changed_at
+        FROM users
+        WHERE id = ?
+        """,
         (user_id,),
     )
 
@@ -40,8 +66,8 @@ def insert_user(
     cursor = execute(
         conn,
         """
-        INSERT INTO users (email, full_name, role, seller_id, password_hash)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (email, full_name, role, seller_id, password_hash, password_changed_at)
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         """,
         (email.strip().lower(), full_name.strip(), role, seller_id, password_hash),
     )
@@ -88,10 +114,41 @@ def set_active(conn: Connection, user_id: int, active: bool) -> int:
 
 
 def set_password_hash(conn: Connection, user_id: int, password_hash: str) -> int:
-    cursor = execute(conn, "UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+    cursor = execute(
+        conn,
+        """
+        UPDATE users
+        SET password_hash = ?, password_changed_at = CURRENT_TIMESTAMP, failed_login_count = 0, locked_until = NULL
+        WHERE id = ?
+        """,
+        (password_hash, user_id),
+    )
     return cursor.rowcount
 
 
 def delete_sessions(conn: Connection, user_id: int) -> None:
-    execute(conn, "DELETE FROM auth_sessions WHERE user_id = ?", (user_id,))
+    execute(conn, "UPDATE auth_sessions SET revoked_at = CURRENT_TIMESTAMP WHERE user_id = ? AND revoked_at IS NULL", (user_id,))
 
+
+def increment_failed_login(conn: Connection, user_id: int, locked_until: str | None) -> None:
+    execute(
+        conn,
+        """
+        UPDATE users
+        SET failed_login_count = failed_login_count + 1, locked_until = COALESCE(?, locked_until)
+        WHERE id = ?
+        """,
+        (locked_until, user_id),
+    )
+
+
+def reset_login_security_state(conn: Connection, user_id: int, login_at: str) -> None:
+    execute(
+        conn,
+        """
+        UPDATE users
+        SET failed_login_count = 0, locked_until = NULL, last_login_at = ?
+        WHERE id = ?
+        """,
+        (login_at, user_id),
+    )

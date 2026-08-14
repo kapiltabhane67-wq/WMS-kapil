@@ -95,7 +95,13 @@ export default function Home() {
         : [[], null];
       setData({ me, dashboard, managerConsole, inventory, orders, tasks, documents, movements, receipts, auditLogs, settings, reference });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Unable to load WMS data");
+      const message = caught instanceof Error ? caught.message : "Unable to load WMS data";
+      if (message.includes("Invalid or expired session") || message.includes("Login token is required")) {
+        clearSession();
+        setError("Your session expired. Please sign in again.");
+        return;
+      }
+      setError(message);
     }
   }
 
@@ -146,12 +152,38 @@ export default function Home() {
     }
   }
 
-  function logout() {
+  function clearSession() {
     window.localStorage.removeItem("wms_token");
     setToken("");
     setMessage("");
-    setError("");
     setData(emptyData);
+  }
+
+  async function logout() {
+    if (token) {
+      try {
+        await api("/v1/auth/logout", token, { method: "POST" });
+      } catch {
+        // Local session still needs to clear even if the token already expired.
+      }
+    }
+    setError("");
+    clearSession();
+  }
+
+  async function changePassword(currentPassword: string, newPassword: string) {
+    setError("");
+    try {
+      await api("/v1/auth/change-password", token, {
+        method: "POST",
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      });
+      await logout();
+      return true;
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Password change failed");
+      return false;
+    }
   }
 
   if (!token) {
@@ -159,7 +191,7 @@ export default function Home() {
   }
 
   return (
-    <AppShell view={view} setView={setView} me={data.me} role={role} refresh={loadData} logout={logout}>
+    <AppShell view={view} setView={setView} me={data.me} role={role} refresh={loadData} logout={logout} changePassword={changePassword}>
       {error && <div className="notice error">{error}</div>}
       {message && <div className="notice">{message}</div>}
       {view === "dashboard" && <DashboardView dashboard={data.dashboard} orders={data.orders} inventory={data.inventory} />}

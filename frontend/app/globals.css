@@ -191,6 +191,22 @@ th {
   font-size: 14px;
 }
 
+.password-card {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.password-card input {
+  min-height: 34px;
+}
+
+.danger-text {
+  color: #ffd1d1 !important;
+}
+
 .session-card button {
   min-height: 32px;
   justify-content: center;

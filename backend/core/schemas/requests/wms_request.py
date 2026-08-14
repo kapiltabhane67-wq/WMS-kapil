@@ -198,6 +198,16 @@ class UserPasswordResetIn(StrictRequest):
         return validate_password_strength(value)
 
 
+class ChangePasswordIn(StrictRequest):
+    current_password: str = Field(min_length=1, max_length=120)
+    new_password: Password
+
+    @field_validator("new_password")
+    @classmethod
+    def password_must_be_strong(cls, value: str) -> str:
+        return validate_password_strength(value)
+
+
 class UserActiveIn(StrictRequest):
     active: bool
 

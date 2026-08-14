@@ -81,12 +81,29 @@ CREATE TABLE IF NOT EXISTS users (
     role TEXT NOT NULL,
     seller_id INTEGER REFERENCES sellers(id),
     password_hash TEXT,
-    active INTEGER NOT NULL DEFAULT 1
+    active INTEGER NOT NULL DEFAULT 1,
+    failed_login_count INTEGER NOT NULL DEFAULT 0,
+    locked_until TEXT,
+    last_login_at TEXT,
+    password_changed_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS auth_sessions (
     token TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TEXT NOT NULL,
+    revoked_at TEXT,
+    last_seen_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS auth_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    user_id INTEGER REFERENCES users(id),
+    event_type TEXT NOT NULL,
+    success INTEGER NOT NULL,
+    reason TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -251,8 +268,26 @@ def init_db():
     with db_connection() as conn:
         conn.executescript(SCHEMA_SQL)
         user_columns = [row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()]
-        if "password_hash" not in user_columns:
-            conn.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
+        user_migrations = {
+            "password_hash": "ALTER TABLE users ADD COLUMN password_hash TEXT",
+            "failed_login_count": "ALTER TABLE users ADD COLUMN failed_login_count INTEGER NOT NULL DEFAULT 0",
+            "locked_until": "ALTER TABLE users ADD COLUMN locked_until TEXT",
+            "last_login_at": "ALTER TABLE users ADD COLUMN last_login_at TEXT",
+            "password_changed_at": "ALTER TABLE users ADD COLUMN password_changed_at TEXT",
+        }
+        for column, statement in user_migrations.items():
+            if column not in user_columns:
+                conn.execute(statement)
+        session_columns = [row["name"] for row in conn.execute("PRAGMA table_info(auth_sessions)").fetchall()]
+        session_migrations = {
+            "expires_at": "ALTER TABLE auth_sessions ADD COLUMN expires_at TEXT",
+            "revoked_at": "ALTER TABLE auth_sessions ADD COLUMN revoked_at TEXT",
+            "last_seen_at": "ALTER TABLE auth_sessions ADD COLUMN last_seen_at TEXT",
+        }
+        for column, statement in session_migrations.items():
+            if column not in session_columns:
+                conn.execute(statement)
+        conn.execute("DELETE FROM auth_sessions WHERE expires_at IS NULL")
         document_columns = [row["name"] for row in conn.execute("PRAGMA table_info(documents)").fetchall()]
         document_migrations = {
             "storage_path": "ALTER TABLE documents ADD COLUMN storage_path TEXT",
