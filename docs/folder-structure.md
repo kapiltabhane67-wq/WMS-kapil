@@ -35,6 +35,14 @@ wms/
 │   │   │   └── responses/
 │   │   │       └── wms_response.py     # Output/response models
 │   │   ├── controllers/
+│   │   │   ├── auth_controller.py
+│   │   │   ├── org_admin_controller.py
+│   │   │   ├── warehouse_manager_controller.py
+│   │   │   ├── receiver_controller.py
+│   │   │   ├── picker_packer_controller.py
+│   │   │   ├── seller_viewer_controller.py
+│   │   │   ├── inventory_controller.py
+│   │   │   ├── document_controller.py
 │   │   │   └── user_controller.py      # User business logic: create, update, activate, reset password
 │   │   ├── cruds/
 │   │   │   ├── base.py                 # Generic SQLite DB helpers

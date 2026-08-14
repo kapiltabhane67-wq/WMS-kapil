@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 
 from core.apis.dependencies import current_user
+from core.controllers import inventory_controller
 from core.database.connection import db_connection
 from core.schemas import InventoryAdjustmentIn, UserContext
-from core.services.wms_service import adjust_inventory, inventory_view, movement_view
 
 
 router = APIRouter()
@@ -20,16 +20,16 @@ def inventory(
     user: UserContext = Depends(current_user),
 ):
     with db_connection() as conn:
-        return inventory_view(conn, user, seller_code)
+        return inventory_controller.inventory_rows(conn, user, seller_code)
 
 
 @router.get("/v1/inventory/movements")
 def inventory_movements(user: UserContext = Depends(current_user)):
     with db_connection() as conn:
-        return movement_view(conn, user)
+        return inventory_controller.inventory_movements(conn, user)
 
 
 @router.post("/v1/inventory/adjustments")
 def inventory_adjustment(payload: InventoryAdjustmentIn, user: UserContext = Depends(current_user)):
     with db_connection() as conn:
-        return adjust_inventory(conn, user, payload)
+        return inventory_controller.inventory_adjustment(conn, user, payload)
