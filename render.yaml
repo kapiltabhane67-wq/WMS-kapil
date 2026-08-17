@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: wms-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    rootDir: backend
+    disk:
+      name: wms-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /app/data/wms.sqlite3
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.13.0
+
+  - type: web
+    name: wms-frontend
+    env: node
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run start"
+    rootDir: frontend
+    envVars:
+      - key: NODE_VERSION
+        value: ~22.0.0
+      - key: NEXT_PUBLIC_API_BASE
+        fromService:
+          type: web
+          name: wms-backend
+          envVarKey: RENDER_EXTERNAL_URL
