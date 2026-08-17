@@ -5,12 +5,15 @@ import { FormEvent, useState } from "react";
 
 import { allNavItems } from "../lib/constants";
 import type { User, View } from "../lib/types";
+import { ChatWidget } from "./chat-widget";
+
 
 export function AppShell({
   view,
   setView,
   me,
   role,
+  token,
   children,
   refresh,
   logout,
@@ -20,6 +23,7 @@ export function AppShell({
   setView: (view: View) => void;
   me: User | null;
   role: string;
+  token: string;
   children: React.ReactNode;
   refresh: () => void;
   logout: () => Promise<void> | void;
@@ -119,6 +123,7 @@ export function AppShell({
         </div>
         {children}
       </section>
+      <ChatWidget token={token} role={role} />
     </main>
   );
 }

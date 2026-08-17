@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { LoginScreen } from "../components/login-screen";
 import { LandingPage } from "../components/landing-page";
-import { ChatWidget } from "../components/chat-widget";
 import { AppShell } from "../components/shell";
 import { allNavItems } from "../lib/constants";
 import { api, login } from "../lib/api";
@@ -44,11 +43,11 @@ function normalizeLoginEmail(email: string) {
 
 export default function Home() {
   const [token, setToken] = useState("");
-  const [showLanding, setShowLanding] = useState(true);
   const [view, setView] = useState<View>("dashboard");
   const [data, setData] = useState<AppData>(emptyData);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [showLanding, setShowLanding] = useState(true);
 
   const role = data.me?.role ?? "";
 
@@ -104,13 +103,13 @@ export default function Home() {
         canViewDocuments ? optionalData(() => api<DocumentRow[]>("/v1/documents", token), [], failures) : [],
         me.role === "ORG_ADMIN"
           ? optionalData(
-              async () => Promise.all([
-                api<AuditLogRow[]>("/v1/admin/audit-logs", token),
-                api<AdminSettings>("/v1/admin/settings", token),
-              ]),
-              [[], null] as [AuditLogRow[], AdminSettings | null],
-              failures,
-            )
+            async () => Promise.all([
+              api<AuditLogRow[]>("/v1/admin/audit-logs", token),
+              api<AdminSettings>("/v1/admin/settings", token),
+            ]),
+            [[], null] as [AuditLogRow[], AdminSettings | null],
+            failures,
+          )
           : ([[], null] as [AuditLogRow[], AdminSettings | null]),
       ]);
       const [auditLogs, settings] = adminData;
@@ -181,6 +180,7 @@ export default function Home() {
     setToken("");
     setMessage("");
     setData(emptyData);
+    setShowLanding(true);
   }
 
   async function logout() {
@@ -214,11 +214,11 @@ export default function Home() {
     if (showLanding) {
       return <LandingPage onEnter={() => setShowLanding(false)} />;
     }
-    return <LoginScreen onLogin={handleLogin} error={error} />;
+    return <LoginScreen onLogin={handleLogin} error={error} onBack={() => setShowLanding(true)} />;
   }
 
   return (
-    <AppShell view={view} setView={setView} me={data.me} role={role} refresh={loadData} logout={logout} changePassword={changePassword}>
+    <AppShell view={view} setView={setView} me={data.me} role={role} token={token} refresh={loadData} logout={logout} changePassword={changePassword}>
       {error && <div className="notice error">{error}</div>}
       {message && <div className="notice">{message}</div>}
       {view === "dashboard" && <DashboardView dashboard={data.dashboard} orders={data.orders} inventory={data.inventory} />}
@@ -247,7 +247,6 @@ export default function Home() {
       )}
       {view === "documents" && <DocumentsView documents={data.documents} token={token} onUploaded={loadData} />}
       {view === "audit" && <LedgerView movements={data.movements} />}
-      <ChatWidget token={token} role={role} />
     </AppShell>
   );
 }
