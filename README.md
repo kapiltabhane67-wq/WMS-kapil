@@ -89,6 +89,7 @@ The project includes a Vercel serverless entrypoint:
 
 ```text
 api/index.py
+api/[...path].py
 ```
 
 That file imports the existing FastAPI backend from `backend/core/apis/api.py` and mounts it under:
