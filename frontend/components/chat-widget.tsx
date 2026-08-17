@@ -26,12 +26,13 @@ export function ChatWidget({ token, role }: ChatWidgetProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Only show for Admin and Manager
-  if (!["ORG_ADMIN", "WAREHOUSE_MANAGER"].includes(role)) return null;
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Only show for Admin and Manager. Keep this after hooks so changing roles
+  // during the initial dashboard load does not violate React's hook ordering.
+  if (!["ORG_ADMIN", "WAREHOUSE_MANAGER"].includes(role)) return null;
 
   async function sendMessage() {
     const text = input.trim();

@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.apis.routes import (
     admin_router,
     auth_router,
+    chat_router,
     dashboard_router,
     document_router,
     fulfillment_router,
@@ -48,3 +49,4 @@ app.include_router(inventory_router.router, tags=["Inventory Ledger"])
 app.include_router(order_router.router, tags=["Order and Marketplace Flow"])
 app.include_router(fulfillment_router.router, tags=["PICKER_PACKER Fulfillment Flow"])
 app.include_router(document_router.router, tags=["Documents and File Upload"])
+app.include_router(chat_router.router, tags=["WMS AI Assistant"])

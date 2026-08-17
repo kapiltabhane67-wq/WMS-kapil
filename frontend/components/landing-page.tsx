@@ -60,11 +60,11 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
   return inView;
 }
 
-function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Section({ children, className = "", id }: { children: React.ReactNode; className?: string; id?: string }) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref as React.RefObject<HTMLElement>);
   return (
-    <section ref={ref} className={`landing-section ${inView ? "ls-visible" : ""} ${className}`}>
+    <section ref={ref} id={id} className={`landing-section ${inView ? "ls-visible" : ""} ${className}`}>
       {children}
     </section>
   );

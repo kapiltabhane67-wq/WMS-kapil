@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { LoginScreen } from "../components/login-screen";
+import { LandingPage } from "../components/landing-page";
+import { ChatWidget } from "../components/chat-widget";
 import { AppShell } from "../components/shell";
 import { allNavItems } from "../lib/constants";
 import { api, login } from "../lib/api";
@@ -42,6 +44,7 @@ function normalizeLoginEmail(email: string) {
 
 export default function Home() {
   const [token, setToken] = useState("");
+  const [showLanding, setShowLanding] = useState(true);
   const [view, setView] = useState<View>("dashboard");
   const [data, setData] = useState<AppData>(emptyData);
   const [message, setMessage] = useState("");
@@ -208,6 +211,9 @@ export default function Home() {
   }
 
   if (!token) {
+    if (showLanding) {
+      return <LandingPage onEnter={() => setShowLanding(false)} />;
+    }
     return <LoginScreen onLogin={handleLogin} error={error} />;
   }
 
@@ -241,6 +247,7 @@ export default function Home() {
       )}
       {view === "documents" && <DocumentsView documents={data.documents} token={token} onUploaded={loadData} />}
       {view === "audit" && <LedgerView movements={data.movements} />}
+      <ChatWidget token={token} role={role} />
     </AppShell>
   );
 }
