@@ -83,6 +83,31 @@ After logging in as bootstrap admin, use Setup to create real sellers, warehouse
 
 After login, the backend returns a bearer token. Normal API endpoints now require that token.
 
+## Vercel Full Deployment
+
+The project includes a Vercel serverless entrypoint:
+
+```text
+api/index.py
+```
+
+That file imports the existing FastAPI backend from `backend/core/apis/api.py` and mounts it under:
+
+```text
+/api
+```
+
+So after Vercel deployment:
+
+- Frontend app: `https://your-vercel-domain.vercel.app`
+- Backend health: `https://your-vercel-domain.vercel.app/api/health`
+- Backend docs: `https://your-vercel-domain.vercel.app/api/docs`
+- Auth login: `https://your-vercel-domain.vercel.app/api/v1/auth/login`
+
+The frontend automatically uses `/api` in production, so no backend URL is needed when frontend and backend are deployed together on Vercel.
+
+Important production note: Vercel serverless file storage is temporary. The current SQLite database can run there for a functional deployed demo, but long-term client data should be moved to a persistent database such as PostgreSQL on Neon, Supabase, or Railway.
+
 ## Smoke Test
 
 After starting the backend, run:

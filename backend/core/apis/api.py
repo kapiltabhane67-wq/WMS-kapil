@@ -13,13 +13,14 @@ from core.apis.routes import (
 )
 from core.database.connection import db_connection, init_db
 from core.database.seed import seed_if_empty
+from commons.config import settings
 
 
 app = FastAPI(title="Whitfield WMS", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3001", "http://localhost:3001"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

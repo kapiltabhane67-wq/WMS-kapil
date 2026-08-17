@@ -13,7 +13,9 @@ import {
 
 import type { View } from "./types";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8016";
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE ??
+  (process.env.NODE_ENV === "production" ? "/api" : "http://127.0.0.1:8016");
 
 export const allNavItems = [
   ["dashboard", "Dashboard", BarChart3],
