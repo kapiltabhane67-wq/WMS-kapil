@@ -11,6 +11,8 @@ services:
         value: data/wms.sqlite3
       - key: JWT_SECRET
         generateValue: true
+      - key: ALLOWED_ORIGIN_REGEX
+        value: "^https://[a-z0-9-]+\\.onrender\\.com$"
       - key: PYTHON_VERSION
         value: 3.13.0
 

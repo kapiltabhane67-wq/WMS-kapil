@@ -13,9 +13,13 @@ import {
 
 import type { View } from "./types";
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ??
-  (process.env.NODE_ENV === "production" ? "/api" : "http://127.0.0.1:8016");
+function apiBase() {
+  const configured = process.env.NEXT_PUBLIC_API_BASE?.trim();
+  const base = configured || (process.env.NODE_ENV === "production" ? "/api" : "http://127.0.0.1:8016");
+  return base.endsWith("/") ? base.slice(0, -1) : base;
+}
+
+export const API_BASE = apiBase();
 
 export const allNavItems = [
   ["dashboard", "Dashboard", BarChart3],

@@ -63,37 +63,58 @@ export default function Home() {
       .map((item) => item[0]);
   }, [role]);
 
+  async function optionalData<T>(loader: () => Promise<T>, fallback: T, failures: string[]): Promise<T> {
+    try {
+      return await loader();
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Unable to load part of the dashboard";
+      if (message.includes("Invalid or expired session") || message.includes("Login token is required")) {
+        throw caught;
+      }
+      failures.push(message);
+      return fallback;
+    }
+  }
+
   async function loadData() {
     if (!token) return;
     setError("");
     try {
-      const [me, reference, dashboard, inventory, documents, movements] = await Promise.all([
+      const failures: string[] = [];
+      const [me, reference] = await Promise.all([
         api<User>("/v1/me", token),
         api<ReferenceData>("/v1/reference", token),
-        api<Dashboard>("/v1/dashboard", token),
-        api<InventoryRow[]>("/v1/inventory", token),
-        api<DocumentRow[]>("/v1/documents", token),
-        api<MovementRow[]>("/v1/inventory/movements", token),
       ]);
-      const orders = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "PICKER_PACKER", "SELLER_VIEWER"].includes(me.role)
-        ? await api<OrderRow[]>("/v1/orders", token)
-        : [];
-      const tasks = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "PICKER_PACKER"].includes(me.role)
-        ? await api<PickTask[]>("/v1/fulfillment/pick-tasks", token)
-        : [];
-      const managerConsole = ["ORG_ADMIN", "WAREHOUSE_MANAGER"].includes(me.role)
-        ? await api<ManagerConsole>("/v1/manager/console", token)
-        : null;
-      const receipts = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "RECEIVER"].includes(me.role)
-        ? await api<ReceiptRow[]>("/v1/receiving/receipts", token)
-        : [];
-      const [auditLogs, settings] = me.role === "ORG_ADMIN"
-        ? await Promise.all([
-            api<AuditLogRow[]>("/v1/admin/audit-logs", token),
-            api<AdminSettings>("/v1/admin/settings", token),
-          ])
-        : [[], null];
+      const dashboard = await optionalData(() => api<Dashboard>("/v1/dashboard", token), null, failures);
+      const canViewOrders = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "PICKER_PACKER", "SELLER_VIEWER"].includes(me.role);
+      const canViewTasks = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "PICKER_PACKER"].includes(me.role);
+      const canViewManager = ["ORG_ADMIN", "WAREHOUSE_MANAGER"].includes(me.role);
+      const canViewReceipts = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "RECEIVER"].includes(me.role);
+      const canViewDocuments = ["ORG_ADMIN", "WAREHOUSE_MANAGER", "SELLER_VIEWER"].includes(me.role);
+      const [inventory, movements, orders, tasks, managerConsole, receipts, documents, adminData] = await Promise.all([
+        optionalData(() => api<InventoryRow[]>("/v1/inventory", token), [], failures),
+        optionalData(() => api<MovementRow[]>("/v1/inventory/movements", token), [], failures),
+        canViewOrders ? optionalData(() => api<OrderRow[]>("/v1/orders", token), [], failures) : [],
+        canViewTasks ? optionalData(() => api<PickTask[]>("/v1/fulfillment/pick-tasks", token), [], failures) : [],
+        canViewManager ? optionalData(() => api<ManagerConsole>("/v1/manager/console", token), null, failures) : null,
+        canViewReceipts ? optionalData(() => api<ReceiptRow[]>("/v1/receiving/receipts", token), [], failures) : [],
+        canViewDocuments ? optionalData(() => api<DocumentRow[]>("/v1/documents", token), [], failures) : [],
+        me.role === "ORG_ADMIN"
+          ? optionalData(
+              async () => Promise.all([
+                api<AuditLogRow[]>("/v1/admin/audit-logs", token),
+                api<AdminSettings>("/v1/admin/settings", token),
+              ]),
+              [[], null] as [AuditLogRow[], AdminSettings | null],
+              failures,
+            )
+          : ([[], null] as [AuditLogRow[], AdminSettings | null]),
+      ]);
+      const [auditLogs, settings] = adminData;
       setData({ me, dashboard, managerConsole, inventory, orders, tasks, documents, movements, receipts, auditLogs, settings, reference });
+      if (failures.length) {
+        setError(`Some dashboard panels could not load: ${Array.from(new Set(failures)).join("; ")}`);
+      }
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Unable to load WMS data";
       if (message.includes("Invalid or expired session") || message.includes("Login token is required")) {
