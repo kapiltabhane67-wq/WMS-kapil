@@ -108,6 +108,20 @@ The frontend automatically uses `/api` in production, so no backend URL is neede
 
 Important production note: Vercel serverless file storage is temporary. The current SQLite database can run there for a functional deployed demo, but long-term client data should be moved to a persistent database such as PostgreSQL on Neon, Supabase, or Railway.
 
+For a public Vercel deployment, add these environment variables before deploying:
+
+```text
+BOOTSTRAP_ADMIN_EMAIL=your-admin-email@example.com
+BOOTSTRAP_ADMIN_NAME=Organization Admin
+BOOTSTRAP_ADMIN_PASSWORD=use-a-strong-password
+SEED_STARTER_DATA=false
+SESSION_TTL_MINUTES=480
+MAX_FAILED_LOGINS=5
+LOCKOUT_MINUTES=15
+```
+
+`SEED_STARTER_DATA=false` prevents public deployment from creating fixed local starter role accounts. Create real manager, receiver, picker, and seller users from the ORG_ADMIN setup screen after login.
+
 ## Smoke Test
 
 After starting the backend, run:

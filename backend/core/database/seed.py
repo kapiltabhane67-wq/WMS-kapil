@@ -12,6 +12,11 @@ def bootstrap_admin_config():
     }
 
 
+def should_seed_starter_data() -> bool:
+    default_value = "false" if os.getenv("VERCEL") else "true"
+    return os.getenv("SEED_STARTER_DATA", default_value).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def seed_demo_accounts(conn: Connection):
     seller_id = conn.execute(
         "INSERT OR IGNORE INTO sellers (code, name) VALUES (?, ?)",
@@ -86,4 +91,5 @@ def seed_if_empty(conn: Connection):
         """,
         (admin["email"], admin["full_name"], hash_password(admin["password"])),
     )
-    seed_demo_accounts(conn)
+    if should_seed_starter_data():
+        seed_demo_accounts(conn)
