@@ -17,6 +17,11 @@ def should_seed_starter_data() -> bool:
     return os.getenv("SEED_STARTER_DATA", default_value).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def should_reset_bootstrap_admin() -> bool:
+    """Allow an explicitly requested credential reset without reseeding data."""
+    return os.getenv("RESET_BOOTSTRAP_ADMIN", "false").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def seed_demo_accounts(conn: Connection):
     seller_id = conn.execute(
         "INSERT OR IGNORE INTO sellers (code, name) VALUES (?, ?)",
@@ -79,6 +84,28 @@ def seed_demo_accounts(conn: Connection):
 
 
 def seed_if_empty(conn: Connection):
+    if should_reset_bootstrap_admin():
+        admin = bootstrap_admin_config()
+        existing_admin = conn.execute("SELECT id FROM users WHERE email = ?", (admin["email"],)).fetchone()
+        if existing_admin:
+            conn.execute(
+                """
+                UPDATE users
+                SET full_name = ?, role = 'ORG_ADMIN', password_hash = ?, active = 1,
+                    failed_login_count = 0, locked_until = NULL
+                WHERE id = ?
+                """,
+                (admin["full_name"], hash_password(admin["password"]), existing_admin["id"]),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO users (email, full_name, role, password_hash)
+                VALUES (?, ?, 'ORG_ADMIN', ?)
+                """,
+                (admin["email"], admin["full_name"], hash_password(admin["password"])),
+            )
+
     user_count = conn.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
     if user_count:
         return
