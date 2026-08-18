@@ -15,6 +15,7 @@ def default_database_path() -> Path:
 
 class Settings(BaseModel):
     app_name: str = os.getenv("APP_NAME", "Whitfield WMS")
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     database_path: Path = Path(os.getenv("DATABASE_PATH", str(default_database_path())))
     allowed_origins: list[str] = env_csv(
         "ALLOWED_ORIGINS",
